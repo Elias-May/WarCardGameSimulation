@@ -27,6 +27,8 @@ class Card:
             return "Greater"
         elif self.value < Card.value:
             return "Less"
+    def __lt__(self, other):
+         return self.value < other.value
 
 class Deck:
     def __init__(self, input_deck="default"):
@@ -62,15 +64,63 @@ class Deck:
         print(p, sep=",")
     def shuffle(self):
         random.shuffle(self.cards)
-    
-cards = []
-cards.append(Card("Club","14"))
-cards.append(Card("Heart","13"))
+    def sort(self):
+        self.cards.sort()
+    def split(self, ace_split="default"):
+        self.shuffle()
+        if (ace_split == "default"):
+            first = self.cards[:len(self.cards)//2]
+            second = self.cards[len(self.cards)//2:]
+            return [Deck(first), Deck(second)]
+        else:
+            if not (ace_split in range(5)):
+                raise Exception("Invalid # of aces specified")
+            first = []
+            second = []
+            aces = []
+            remove_indices = []
+            for x in range(len(self.cards)):
+                if self.cards[x].value == 14:
+                    aces.append(self.cards[x])
+                    remove_indices.append(x)
+            #easy way to remove unwanted indexes all at once below
+            self.cards = [i for j, i in enumerate(self.cards) if j not in remove_indices]
+            for x in range(ace_split):
+                first.append(aces.pop())
+            second.extend(aces)
+            while (len(self.cards) > 0):
+                if (len(first) > len(second)):
+                    second.append(self.cards.pop())
+                else:
+                    first.append(self.cards.pop())
+            return [Deck(first), Deck(second)]
 
-d = Deck(cards)
-d.printAll()
-d.shuffle()
-d.printAll()
+
+
+
+#cards = []
+#cards.append(Card("Club","14"))
+#cards.append(Card("Heart","13"))
+
+for x in range(10):
+    d = Deck()
+    #d.printAll()
+    decks = d.split(4)
+    decks[0].sort()
+    decks[1].sort()
+    decks[0].printAll()
+    decks[1].printAll()
+    print(len(decks[0].cards))
+    print(len(decks[1].cards))
+    '''if (sum([1 for card in decks[0].cards if card.value == 14])) != 4:
+        raise Exception("err")
+    if (sum([1 for card in decks[1].cards if card.value == 14])) != 0:
+        raise Exception("err")'''
+    if len(decks[0].cards) != 26:
+        raise Exception("err")
+    if len(decks[1].cards) != 26:
+        raise Exception("err")
+
 
 
 
