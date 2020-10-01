@@ -7,7 +7,6 @@ class Card:
             raise Exception("Invalid card suite")
         self.suit = suit
         self.value = int(value)
-
     def getName(self):
         switcher = {
             11: "Jack",
@@ -32,7 +31,11 @@ class Card:
 
 class Deck:
     def __init__(self, input_deck="default"):
+        self.cards = []
+        self.discarded = []
+        self.new = False
         if (input_deck == "default"):
+            self.new = True
             cards = []
             for x in range(4):
                 switcher = {
@@ -51,22 +54,32 @@ class Deck:
                 raise Exception("Invalid deck passed")
             else:
                 self.cards = input_deck
-
     def printAllVerbose(self):
         p = []
         for x in range(len(self.cards)):
             p.append(self.cards[x].getName())
         print(p, sep=",")
     def printAll(self):
-        p = []
+        deck = []
         for x in range(len(self.cards)):
-            p.append(self.cards[x].value)
-        print(p, sep=",")
+            deck.append(self.cards[x].value)
+        dis = []
+        for x in range(len(self.discarded)):
+            dis.append(self.discarded[x].value)
+        print("Deck", deck, sep=":")
+        print("Discarded", dis, sep=":")
     def shuffle(self):
+        self.cards = self.cards + self.discarded
+        self.discarded = []
+        random.shuffle(self.cards)
+    def shuffleNonDiscarded(self):
         random.shuffle(self.cards)
     def sort(self):
         self.cards.sort()
     def split(self, ace_split="default"):
+        if not self.new:
+            raise Exception("Cant split this deck")
+        self.new = False
         self.shuffle()
         if (ace_split == "default"):
             first = self.cards[:len(self.cards)//2]
@@ -94,34 +107,68 @@ class Deck:
                 else:
                     first.append(self.cards.pop())
             return [Deck(first), Deck(second)]
+    def add(self, cards):
+        if not all(isinstance(x, Card) for x in cards):
+            raise Exception("Invalid cards passed")
+        self.discarded += cards
+    def pop(self, number=1):
+        popped = []
+        for x in range(number):
+            if(len(self.cards)<=0):
+                self.shuffle()
+                if(len(self.cards)<=0):
+                    return "Loss"
+                popped.append(self.cards.pop())
+            else:
+                popped.append(self.cards.pop())
+        return popped
 
+class Game:
+    def __init__(self, ace_split="default"):
+        self.playing = True
+        self.turns = 0
+        self.p1 = ""
+        self.p2 = ""
+        d = Deck()
+        decks = d.split(ace_split)
+        self.p1 = decks[0]
+        self.p2 = decks[1]
+    def printAll(self):
+        print("P1:")
+        self.p1.printAll()
+        print("P2:")
+        self.p2.printAll()
+    def fight(self, wager=[]):
+        if not (self.playing):
+            raise Exception("This game is over")
+        card1 = self.p1.pop()[0]
+        if(card1=="Loss"):
+            return "p2"   
+        card2 = self.p2.pop()[0]
+        if(card2=="Loss"):
+            return "p1" 
+        wager.append(card1)
+        wager.append(card2)
+        if(card1.compare(card2)=="Less"):
+            self.p2.add(wager)
+            return "done"
+        if(card1.compare(card2)=="Greater"):
+            self.p1.add(wager)
+            return "done"
+        if(card1.compare(card2)=="Equal"):
+            return self.war(wager)
+    def war(self, wager):
+        p1wager = self.p1.pop(3)
+        if(p1wager=="Loss"):
+            return "p2"
+        p2wager = self.p2.pop(3)
+        if(p2wager=="Loss"):
+            return "p1"
+        wager += p1wager
+        wager += p2wager
+        return self.fight(wager)
 
-
-
-#cards = []
-#cards.append(Card("Club","14"))
-#cards.append(Card("Heart","13"))
-
-for x in range(10):
-    d = Deck()
-    #d.printAll()
-    decks = d.split(4)
-    decks[0].sort()
-    decks[1].sort()
-    decks[0].printAll()
-    decks[1].printAll()
-    print(len(decks[0].cards))
-    print(len(decks[1].cards))
-    '''if (sum([1 for card in decks[0].cards if card.value == 14])) != 4:
-        raise Exception("err")
-    if (sum([1 for card in decks[1].cards if card.value == 14])) != 0:
-        raise Exception("err")'''
-    if len(decks[0].cards) != 26:
-        raise Exception("err")
-    if len(decks[1].cards) != 26:
-        raise Exception("err")
-
-
-
-
-#print(c.compare(c2))
+g = Game()
+g.printAll()
+print(g.fight())
+g.printAll()
