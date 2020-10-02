@@ -10,7 +10,7 @@ class Sim:
             p2_wins = 0
             total_turns = 0
             print("Simulating", self.games, "Games, p1 starts with", t, "aces")
-            for x in range(self.games):
+            for _ in range(self.games):
                 
                 if(t=="random"):
                     g = Game()
