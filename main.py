@@ -1,3 +1,3 @@
 from Sim import Sim
 
-s = Sim(10000)
+s = Sim(1000)
